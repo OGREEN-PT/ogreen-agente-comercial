@@ -652,34 +652,37 @@ def pagina_historico():
             st.divider()
             st.markdown("#### 💬 Transcrição da Conversa")
             try:
-                # Tentar com o telefone tal como está
-                hist_resp = supabase.rpc("get_chat_history", {"p_phone": telefone}).execute()
-                hist_text = str(hist_resp.data) if hist_resp.data else ""
+                # Tentar variantes do telefone
+                phone_variants = [telefone]
+                if telefone.startswith("whatsapp:"):
+                    phone_variants.append(telefone.replace("whatsapp:", ""))
+                else:
+                    phone_variants.append("whatsapp:" + telefone)
 
-                # Se vazio, tentar sem prefixo whatsapp:
-                if (not hist_text or hist_text == "None") and telefone.startswith("whatsapp:"):
-                    phone_clean = telefone.replace("whatsapp:", "")
-                    hist_resp = supabase.rpc("get_chat_history", {"p_phone": phone_clean}).execute()
-                    hist_text = str(hist_resp.data) if hist_resp.data else ""
+                msgs = []
+                for pv in phone_variants:
+                    msg_resp = supabase.table("whatsapp_messages") \
+                        .select("*") \
+                        .eq("phone", pv) \
+                        .order("created_at") \
+                        .execute()
+                    if msg_resp.data:
+                        msgs = msg_resp.data
+                        break
 
-                # Se vazio, tentar com prefixo whatsapp:
-                if (not hist_text or hist_text == "None") and not telefone.startswith("whatsapp:"):
-                    hist_resp = supabase.rpc("get_chat_history", {"p_phone": "whatsapp:" + telefone}).execute()
-                    hist_text = str(hist_resp.data) if hist_resp.data else ""
-
-                if hist_text and hist_text != "None":
-                    for line in hist_text.split("\n"):
-                        line = line.strip()
-                        if not line:
-                            continue
-                        if line.startswith("Lead:"):
+                if msgs:
+                    for m in msgs:
+                        role = m.get("role", "")
+                        body = m.get("body", "")
+                        ts = (m.get("created_at", "") or "")[:16].replace("T", " ")
+                        if role == "user":
                             with st.chat_message("user", avatar="👤"):
-                                st.write(line[5:].strip())
-                        elif line.startswith("Eva:"):
+                                st.caption(ts)
+                                st.write(body)
+                        elif role == "assistant":
                             with st.chat_message("assistant", avatar="🤖"):
-                                st.write(line[4:].strip())
-                        else:
-                            st.text(line)
+                                st.caption(ts)
+                                st.write(body)
                 else:
                     st.info("Sem histórico de conversa disponível.")
             except Exception as e:
