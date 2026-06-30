@@ -683,6 +683,26 @@ def pagina_historico():
                             with st.chat_message("assistant", avatar="🤖"):
                                 st.caption(ts)
                                 st.write(body)
+                    # Exportar transcrição
+                    trans_rows = []
+                    for m in msgs:
+                        ts = (m.get("created_at", "") or "")[:19].replace("T", " ")
+                        role_label = "Lead" if m.get("role") == "user" else "Eva"
+                        trans_rows.append({
+                            "Data/Hora": ts,
+                            "De": role_label,
+                            "Mensagem": m.get("content", ""),
+                        })
+                    trans_df = pd.DataFrame(trans_rows)
+                    buf_trans = io.BytesIO()
+                    trans_df.to_excel(buf_trans, index=False, engine="openpyxl")
+                    phone_label = telefone.replace("whatsapp:", "").replace("+", "")
+                    st.download_button(
+                        "⬇️ Exportar Transcrição",
+                        buf_trans.getvalue(),
+                        file_name=f"transcricao_{phone_label}_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
                 else:
                     st.info("Sem histórico de conversa disponível.")
             except Exception as e:
