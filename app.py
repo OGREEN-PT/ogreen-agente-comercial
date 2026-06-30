@@ -643,9 +643,6 @@ def pagina_historico():
         # Tentar obter telefone: do lead, ou directamente do contacto
         if not telefone:
             telefone = c.get("telefone", "")
-        # Limpar prefixo whatsapp: se existir
-        if telefone and telefone.startswith("whatsapp:"):
-            telefone = telefone.replace("whatsapp:", "")
 
         if canal == "whatsapp" and telefone:
             st.divider()
