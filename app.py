@@ -640,6 +640,13 @@ def pagina_historico():
         telefone = lead.get("telefone", "")
         canal = c.get("canal_usado", "")
 
+        # Tentar obter telefone: do lead, ou directamente do contacto
+        if not telefone:
+            telefone = c.get("telefone", "")
+        # Limpar prefixo whatsapp: se existir
+        if telefone and telefone.startswith("whatsapp:"):
+            telefone = telefone.replace("whatsapp:", "")
+
         if canal == "whatsapp" and telefone:
             st.divider()
             st.markdown("#### 💬 Transcrição da Conversa")
