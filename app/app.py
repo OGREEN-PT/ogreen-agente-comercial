@@ -364,7 +364,12 @@ def pagina_upload():
                     }
                     leads_data.append(lead)
 
-                supabase.table("leads").insert(leads_data).execute()
+                try:
+                    supabase.table("leads").insert(leads_data).execute()
+                except Exception as db_err:
+                    st.error(f"Erro Supabase: {db_err}")
+                    st.json(leads_data[0] if leads_data else {})
+                    return
 
                 # 3. Enviar cada lead para o Make webhook
                 enviados = 0
