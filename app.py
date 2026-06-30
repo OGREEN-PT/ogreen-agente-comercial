@@ -663,7 +663,7 @@ def pagina_historico():
                 for pv in phone_variants:
                     msg_resp = supabase.table("whatsapp_messages") \
                         .select("*") \
-                        .eq("phone", pv) \
+                        .eq("phone_number", pv) \
                         .order("created_at") \
                         .execute()
                     if msg_resp.data:
@@ -673,7 +673,7 @@ def pagina_historico():
                 if msgs:
                     for m in msgs:
                         role = m.get("role", "")
-                        body = m.get("body", "")
+                        body = m.get("content", "")
                         ts = (m.get("created_at", "") or "")[:16].replace("T", " ")
                         if role == "user":
                             with st.chat_message("user", avatar="👤"):
