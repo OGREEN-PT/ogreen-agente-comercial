@@ -692,4 +692,36 @@ st.markdown(f"""
 <div style="text-align: center; padding: 2rem 0 1rem; color: #BDBDBD; font-size: 0.75rem;">
     OGREEN Advanced Waste Technologies &copy; 2026 &mdash; Agente Comercial IA
 </div>
+""", unsafe_allow_html=True) Exception as e:
+                st.error(f"Erro ao carregar transcrição: {e}")
+        elif canal != "whatsapp":
+            st.divider()
+            st.info("Transcrição disponível apenas para o canal WhatsApp.")
+
+    st.divider()
+
+    # Export
+    buffer_export = io.BytesIO()
+    df.to_excel(buffer_export, index=False, engine="openpyxl")
+    st.download_button(
+        "⬇️ Exportar para Excel",
+        buffer_export.getvalue(),
+        file_name=f"ogreen_contactos_{datetime.now().strftime('%Y%m%d')}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+
+# --- Router ---
+if pagina == "📤 Upload de Leads":
+    pagina_upload()
+elif pagina == "📊 Dashboard":
+    pagina_dashboard()
+elif pagina == "📋 Histórico de Contactos":
+    pagina_historico()
+
+# --- Footer ---
+st.markdown(f"""
+<div style="text-align: center; padding: 2rem 0 1rem; color: #BDBDBD; font-size: 0.75rem;">
+    OGREEN Advanced Waste Technologies &copy; 2026 &mdash; Agente Comercial IA
+</div>
 """, unsafe_allow_html=True)
