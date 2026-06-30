@@ -576,23 +576,63 @@ def pagina_historico():
 
     st.markdown(f"**{len(contactos)} contactos encontrados**")
 
-    # Tabela
+    # Helper para valores nulos
+    def val(v, fallback="—"):
+        if v is None or str(v).strip() == "" or str(v).strip().lower() == "none":
+            return fallback
+        return str(v)
+
+    # Construir tabela
     rows = []
+    contacto_ids = []
+    lead_ids = []
     for c in contactos:
-        lead = c.get("leads", {}) or {}
+        lead = c.get("leads") or {}
+        contacto_ids.append(c.get("id"))
+        lead_ids.append(c.get("lead_id"))
         rows.append({
-            "Data": c.get("data_hora", "")[:16].replace("T", " "),
-            "Nome": lead.get("nome", "—"),
-            "Empresa": lead.get("empresa", "—"),
-            "Canal": c.get("canal_usado", "—"),
-            "Classificação": c.get("classificacao", "—"),
-            "Interesse": c.get("nivel_interesse", "—"),
-            "Resumo": c.get("resumo_interacao", "—"),
-            "Próxima Acção": c.get("proxima_acao", "—"),
+            "Data": (c.get("data_hora", "") or "")[:16].replace("T", " "),
+            "Nome": val(lead.get("nome")),
+            "Empresa": val(lead.get("empresa")),
+            "Canal": val(c.get("canal_usado")),
+            "Classificação": val(c.get("classificacao")),
+            "Interesse": val(c.get("nivel_interesse")),
+            "Resumo": val(c.get("resumo_interacao")),
+            "Próxima Acção": val(c.get("proxima_acao")),
         })
 
     df = pd.DataFrame(rows)
-    st.dataframe(df, use_container_width=True, hide_index=True)
+
+    # Tabela com selecção para apagar
+    event = st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+        on_select="rerun",
+        selection_mode="multi-row",
+    )
+
+    # Botão apagar seleccionados
+    selected_rows = event.selection.rows if event.selection else []
+    if selected_rows:
+        if st.button(f"🗑️ Apagar {len(selected_rows)} registo(s) seleccionado(s)", type="primary"):
+            erros_del = 0
+            for idx in selected_rows:
+                try:
+                    cid = contacto_ids[idx]
+                    lid = lead_ids[idx]
+                    supabase.table("contactos").delete().eq("id", cid).execute()
+                    if lid:
+                        supabase.table("leads").delete().eq("id", lid).execute()
+                except Exception:
+                    erros_del += 1
+            if erros_del == 0:
+                st.success(f"✅ {len(selected_rows)} registo(s) apagado(s).")
+            else:
+                st.warning(f"⚠️ {erros_del} erro(s) ao apagar.")
+            st.rerun()
+
+    st.divider()
 
     # Export
     buffer_export = io.BytesIO()
