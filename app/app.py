@@ -31,35 +31,189 @@ WEBHOOKS = {
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+# --- Cores OGREEN ---
+OGREEN_PRIMARY = "#2E7D32"
+OGREEN_DARK = "#1B5E20"
+OGREEN_LIGHT = "#4CAF50"
+OGREEN_ACCENT = "#81C784"
+OGREEN_BG = "#F1F8E9"
+OGREEN_WHITE = "#FFFFFF"
+OGREEN_GREY = "#424242"
+OGREEN_LOGO = "https://ogreen.pt/wp-content/themes/ogreen/assets/logo.svg"
 
 # --- Estilos ---
-st.markdown("""
+st.markdown(f"""
 <style>
-    .main-header {
+    /* --- Global --- */
+    .stApp {{
+        background-color: #FAFDF7;
+    }}
+
+    /* --- Sidebar --- */
+    section[data-testid="stSidebar"] {{
+        background: linear-gradient(180deg, {OGREEN_DARK} 0%, {OGREEN_PRIMARY} 100%);
+    }}
+    section[data-testid="stSidebar"] * {{
+        color: {OGREEN_WHITE} !important;
+    }}
+    section[data-testid="stSidebar"] .stRadio label {{
+        color: {OGREEN_WHITE} !important;
+        font-weight: 500;
+    }}
+    section[data-testid="stSidebar"] .stRadio label:hover {{
+        background-color: rgba(255, 255, 255, 0.12);
+        border-radius: 6px;
+    }}
+    section[data-testid="stSidebar"] hr {{
+        border-color: rgba(255, 255, 255, 0.2) !important;
+    }}
+
+    /* --- Headers --- */
+    .main-header {{
         font-size: 2rem;
         font-weight: 700;
-        color: #2E7D32;
-    }
-    .metric-card {
-        background: #f8f9fa;
+        color: {OGREEN_DARK};
+        margin-bottom: 0.5rem;
+    }}
+    .sub-header {{
+        font-size: 1rem;
+        color: #757575;
+        margin-top: -0.5rem;
+        margin-bottom: 1.5rem;
+    }}
+
+    /* --- Metric cards --- */
+    [data-testid="stMetric"] {{
+        background: {OGREEN_WHITE};
+        border-radius: 10px;
+        padding: 16px 20px;
+        border-left: 4px solid {OGREEN_PRIMARY};
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    }}
+    [data-testid="stMetricLabel"] {{
+        color: #757575 !important;
+        font-size: 0.85rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }}
+    [data-testid="stMetricValue"] {{
+        color: {OGREEN_DARK} !important;
+        font-weight: 700 !important;
+    }}
+
+    /* --- Buttons --- */
+    .stButton > button[kind="primary"] {{
+        background: linear-gradient(135deg, {OGREEN_PRIMARY} 0%, {OGREEN_DARK} 100%);
+        border: none;
         border-radius: 8px;
-        padding: 16px;
-        border-left: 4px solid #2E7D32;
-    }
-    .stTabs [data-baseweb="tab-list"] {
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        padding: 0.6rem 1.5rem;
+        transition: all 0.2s ease;
+    }}
+    .stButton > button[kind="primary"]:hover {{
+        box-shadow: 0 4px 12px rgba(46, 125, 50, 0.35);
+        transform: translateY(-1px);
+    }}
+
+    /* --- Download buttons --- */
+    .stDownloadButton > button {{
+        background: {OGREEN_WHITE} !important;
+        color: {OGREEN_PRIMARY} !important;
+        border: 2px solid {OGREEN_PRIMARY} !important;
+        border-radius: 8px;
+        font-weight: 600;
+    }}
+    .stDownloadButton > button:hover {{
+        background: {OGREEN_BG} !important;
+    }}
+
+    /* --- Dataframe --- */
+    .stDataFrame {{
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    }}
+
+    /* --- Expander --- */
+    .streamlit-expanderHeader {{
+        background: {OGREEN_BG};
+        border-radius: 8px;
+        font-weight: 600;
+        color: {OGREEN_DARK};
+    }}
+
+    /* --- File uploader --- */
+    [data-testid="stFileUploader"] {{
+        border: 2px dashed {OGREEN_ACCENT};
+        border-radius: 10px;
+        padding: 1rem;
+        background: {OGREEN_WHITE};
+    }}
+
+    /* --- Tabs --- */
+    .stTabs [data-baseweb="tab-list"] {{
         gap: 8px;
-    }
-    .stTabs [data-baseweb="tab"] {
+    }}
+    .stTabs [data-baseweb="tab"] {{
         padding: 8px 16px;
-    }
+        border-radius: 8px 8px 0 0;
+    }}
+
+    /* --- Selectbox --- */
+    .stSelectbox [data-baseweb="select"] {{
+        border-radius: 8px;
+    }}
+
+    /* --- Divider --- */
+    hr {{
+        border-color: {OGREEN_BG} !important;
+    }}
+
+    /* --- Logo sidebar --- */
+    .sidebar-logo {{
+        text-align: center;
+        padding: 1.5rem 1rem 0.5rem;
+    }}
+    .sidebar-logo img {{
+        width: 160px;
+        filter: brightness(0) invert(1);
+    }}
+    .sidebar-title {{
+        text-align: center;
+        font-size: 0.8rem;
+        opacity: 0.8;
+        margin-top: 0.3rem;
+        letter-spacing: 0.08em;
+    }}
+    .sidebar-agent {{
+        text-align: center;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 0.75rem;
+        margin: 0.8rem auto 0.5rem;
+        display: inline-block;
+        width: auto;
+    }}
+    .sidebar-agent-wrapper {{
+        text-align: center;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
 
 # --- Sidebar ---
 with st.sidebar:
-    st.markdown("### ♻️ OGREEN")
-    st.markdown("**Advanced Waste Technologies**")
+    st.markdown(f"""
+        <div class="sidebar-logo">
+            <img src="{OGREEN_LOGO}" alt="OGREEN">
+        </div>
+        <div class="sidebar-title">ADVANCED WASTE TECHNOLOGIES</div>
+        <div class="sidebar-agent-wrapper">
+            <span class="sidebar-agent">🤖 Agente Comercial IA</span>
+        </div>
+    """, unsafe_allow_html=True)
     st.divider()
     pagina = st.radio(
         "Navegação",
@@ -71,7 +225,7 @@ with st.sidebar:
 # === PÁGINA: Upload de Leads ===
 def pagina_upload():
     st.markdown('<p class="main-header">📤 Upload de Leads</p>', unsafe_allow_html=True)
-    st.markdown("Carregue um ficheiro Excel com os leads a contactar pelo agente.")
+    st.markdown('<p class="sub-header">Carregue um ficheiro Excel com os leads a contactar pelo agente.</p>', unsafe_allow_html=True)
 
     # Template de exemplo
     with st.expander("📄 Ver formato esperado do Excel"):
@@ -248,6 +402,7 @@ def pagina_upload():
 # === PÁGINA: Dashboard ===
 def pagina_dashboard():
     st.markdown('<p class="main-header">📊 Dashboard</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Visão geral do desempenho do agente comercial.</p>', unsafe_allow_html=True)
 
     # Período
     col_filtro1, col_filtro2 = st.columns(2)
@@ -330,7 +485,7 @@ def pagina_dashboard():
                 "Classificação": list(class_counts.keys()),
                 "Total": list(class_counts.values())
             })
-            st.bar_chart(chart_df, x="Classificação", y="Total", color="#2E7D32")
+            st.bar_chart(chart_df, x="Classificação", y="Total", color=OGREEN_PRIMARY)
 
         with col_chart2:
             st.markdown("#### Contactos por Canal")
@@ -343,7 +498,7 @@ def pagina_dashboard():
                 "Canal": list(canal_counts.keys()),
                 "Total": list(canal_counts.values())
             })
-            st.bar_chart(canal_df, x="Canal", y="Total", color="#1565C0")
+            st.bar_chart(canal_df, x="Canal", y="Total", color=OGREEN_LIGHT)
 
         # Nível de interesse
         st.markdown("#### Nível de Interesse")
@@ -356,7 +511,7 @@ def pagina_dashboard():
             "Nível": list(nivel_counts.keys()),
             "Total": list(nivel_counts.values())
         })
-        st.bar_chart(nivel_df, x="Nível", y="Total", color="#FF8F00")
+        st.bar_chart(nivel_df, x="Nível", y="Total", color=OGREEN_ACCENT)
 
     else:
         st.info("Ainda não há contactos registados para este período.")
@@ -365,6 +520,7 @@ def pagina_dashboard():
 # === PÁGINA: Histórico ===
 def pagina_historico():
     st.markdown('<p class="main-header">📋 Histórico de Contactos</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-header">Registo detalhado de todas as interacções com leads.</p>', unsafe_allow_html=True)
 
     # Filtros
     col1, col2, col3 = st.columns(3)
@@ -444,3 +600,10 @@ elif pagina == "📊 Dashboard":
     pagina_dashboard()
 elif pagina == "📋 Histórico de Contactos":
     pagina_historico()
+
+# --- Footer ---
+st.markdown(f"""
+<div style="text-align: center; padding: 2rem 0 1rem; color: #BDBDBD; font-size: 0.75rem;">
+    OGREEN Advanced Waste Technologies &copy; 2026 &mdash; Agente Comercial IA
+</div>
+""", unsafe_allow_html=True)
