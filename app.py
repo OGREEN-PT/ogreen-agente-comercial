@@ -590,8 +590,12 @@ def pagina_historico():
         lead = c.get("leads") or {}
         contacto_ids.append(c.get("id"))
         lead_ids.append(c.get("lead_id"))
+        tel_display = lead.get("telefone") or c.get("telefone") or ""
+        if tel_display.startswith("whatsapp:"):
+            tel_display = tel_display.replace("whatsapp:", "")
         rows.append({
             "Data": (c.get("data_hora", "") or "")[:16].replace("T", " "),
+            "Telefone": val(tel_display),
             "Nome": val(lead.get("nome")),
             "Empresa": val(lead.get("empresa")),
             "Canal": val(c.get("canal_usado")),
@@ -648,8 +652,20 @@ def pagina_historico():
             st.divider()
             st.markdown("#### 💬 Transcrição da Conversa")
             try:
+                # Tentar com o telefone tal como está
                 hist_resp = supabase.rpc("get_chat_history", {"p_phone": telefone}).execute()
                 hist_text = str(hist_resp.data) if hist_resp.data else ""
+
+                # Se vazio, tentar sem prefixo whatsapp:
+                if (not hist_text or hist_text == "None") and telefone.startswith("whatsapp:"):
+                    phone_clean = telefone.replace("whatsapp:", "")
+                    hist_resp = supabase.rpc("get_chat_history", {"p_phone": phone_clean}).execute()
+                    hist_text = str(hist_resp.data) if hist_resp.data else ""
+
+                # Se vazio, tentar com prefixo whatsapp:
+                if (not hist_text or hist_text == "None") and not telefone.startswith("whatsapp:"):
+                    hist_resp = supabase.rpc("get_chat_history", {"p_phone": "whatsapp:" + telefone}).execute()
+                    hist_text = str(hist_resp.data) if hist_resp.data else ""
 
                 if hist_text and hist_text != "None":
                     for line in hist_text.split("\n"):
@@ -662,6 +678,8 @@ def pagina_historico():
                         elif line.startswith("Eva:"):
                             with st.chat_message("assistant", avatar="🤖"):
                                 st.write(line[4:].strip())
+                        else:
+                            st.text(line)
                 else:
                     st.info("Sem histórico de conversa disponível.")
             except Exception as e:
