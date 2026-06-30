@@ -354,7 +354,7 @@ def pagina_upload():
                     lead = {
                         "nome": nome_final,
                         "empresa": str(empresa_raw) if pd.notna(empresa_raw) else "",
-                        "telefone": str(row.get("telefone", "")) if pd.notna(row.get("telefone")) else "",
+                        "telefone": str(row.get("telefone", "")).replace(" ", "") if pd.notna(row.get("telefone")) else "",
                         "email": str(row.get("email", "")) if pd.notna(row.get("email")) else "",
                         "notas": str(row.get("notas", "")) if pd.notna(row.get("notas")) else "",
                         "canal": str(row["canal"]),
