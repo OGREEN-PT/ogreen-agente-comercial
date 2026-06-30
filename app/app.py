@@ -632,6 +632,40 @@ def pagina_historico():
                 st.warning(f"⚠️ {erros_del} erro(s) ao apagar.")
             st.rerun()
 
+    # Transcrição da conversa (WhatsApp)
+    if len(selected_rows) == 1:
+        idx = selected_rows[0]
+        c = contactos[idx]
+        lead = c.get("leads") or {}
+        telefone = lead.get("telefone", "")
+        canal = c.get("canal_usado", "")
+
+        if canal == "whatsapp" and telefone:
+            st.divider()
+            st.markdown("#### 💬 Transcrição da Conversa")
+            try:
+                hist_resp = supabase.rpc("get_chat_history", {"p_phone": telefone}).execute()
+                hist_text = str(hist_resp.data) if hist_resp.data else ""
+
+                if hist_text and hist_text != "None":
+                    for line in hist_text.split("\n"):
+                        line = line.strip()
+                        if not line:
+                            continue
+                        if line.startswith("Lead:"):
+                            with st.chat_message("user", avatar="👤"):
+                                st.write(line[5:].strip())
+                        elif line.startswith("Eva:"):
+                            with st.chat_message("assistant", avatar="🤖"):
+                                st.write(line[4:].strip())
+                else:
+                    st.info("Sem histórico de conversa disponível.")
+            except Exception as e:
+                st.error(f"Erro ao carregar transcrição: {e}")
+        elif canal != "whatsapp":
+            st.divider()
+            st.info("Transcrição disponível apenas para o canal WhatsApp.")
+
     st.divider()
 
     # Export

@@ -632,30 +632,32 @@ def pagina_historico():
                 st.warning(f"⚠️ {erros_del} erro(s) ao apagar.")
             st.rerun()
 
-    st.divider()
+    # Transcrição da conversa (WhatsApp)
+    if len(selected_rows) == 1:
+        idx = selected_rows[0]
+        c = contactos[idx]
+        lead = c.get("leads") or {}
+        telefone = lead.get("telefone", "")
+        canal = c.get("canal_usado", "")
 
-    # Export
-    buffer_export = io.BytesIO()
-    df.to_excel(buffer_export, index=False, engine="openpyxl")
-    st.download_button(
-        "⬇️ Exportar para Excel",
-        buffer_export.getvalue(),
-        file_name=f"ogreen_contactos_{datetime.now().strftime('%Y%m%d')}.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+        if canal == "whatsapp" and telefone:
+            st.divider()
+            st.markdown("#### 💬 Transcrição da Conversa")
+            try:
+                hist_resp = supabase.rpc("get_chat_history", {"p_phone": telefone}).execute()
+                hist_text = str(hist_resp.data) if hist_resp.data else ""
 
-
-# --- Router ---
-if pagina == "📤 Upload de Leads":
-    pagina_upload()
-elif pagina == "📊 Dashboard":
-    pagina_dashboard()
-elif pagina == "📋 Histórico de Contactos":
-    pagina_historico()
-
-# --- Footer ---
-st.markdown(f"""
-<div style="text-align: center; padding: 2rem 0 1rem; color: #BDBDBD; font-size: 0.75rem;">
-    OGREEN Advanced Waste Technologies &copy; 2026 &mdash; Agente Comercial IA
-</div>
-""", unsafe_allow_html=True)
+                if hist_text and hist_text != "None":
+                    for line in hist_text.split("\n"):
+                        line = line.strip()
+                        if not line:
+                            continue
+                        if line.startswith("Lead:"):
+                            with st.chat_message("user", avatar="👤"):
+                                st.write(line[5:].strip())
+                        elif line.startswith("Eva:"):
+                            with st.chat_message("assistant", avatar="🤖"):
+                                st.write(line[4:].strip())
+                else:
+                    st.info("Sem histórico de conversa disponível.")
+            except
