@@ -277,7 +277,7 @@ def pagina_upload():
             return
 
         # Validação de colunas
-        colunas_obrigatorias = ["nome", "empresa", "canal"]
+        colunas_obrigatorias = ["empresa", "canal"]
         colunas_em_falta = [c for c in colunas_obrigatorias if c not in df.columns]
 
         if colunas_em_falta:
@@ -344,9 +344,16 @@ def pagina_upload():
                 # 2. Inserir leads no Supabase
                 leads_data = []
                 for _, row in df.iterrows():
+                    nome_raw = row.get("nome", "")
+                    empresa_raw = row.get("empresa", "")
+                    # Fallback: se nome vazio, usa "Contacto da [empresa]"
+                    if pd.isna(nome_raw) or str(nome_raw).strip() == "":
+                        nome_final = f"Contacto da {empresa_raw}" if pd.notna(empresa_raw) and str(empresa_raw).strip() else ""
+                    else:
+                        nome_final = str(nome_raw)
                     lead = {
-                        "nome": str(row.get("nome", "")),
-                        "empresa": str(row.get("empresa", "")),
+                        "nome": nome_final,
+                        "empresa": str(empresa_raw) if pd.notna(empresa_raw) else "",
                         "telefone": str(row.get("telefone", "")) if pd.notna(row.get("telefone")) else None,
                         "email": str(row.get("email", "")) if pd.notna(row.get("email")) else None,
                         "notas": str(row.get("notas", "")) if pd.notna(row.get("notas")) else None,
