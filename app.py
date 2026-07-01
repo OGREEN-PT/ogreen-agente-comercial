@@ -707,9 +707,60 @@ def pagina_historico():
                     st.info("Sem histórico de conversa disponível.")
             except Exception as e:
                 st.error(f"Erro ao carregar transcrição: {e}")
-        elif canal != "whatsapp":
+        elif canal == "telefone":
+            conv_id = c.get("conversation_id", "")
+            if conv_id:
+                st.divider()
+                st.markdown("#### 📞 Transcrição da Chamada")
+                try:
+                    msg_resp = supabase.table("phone_messages") \
+                        .select("*") \
+                        .eq("conversation_id", conv_id) \
+                        .order("created_at") \
+                        .execute()
+                    msgs = msg_resp.data or []
+                    if msgs:
+                        for m in msgs:
+                            role = m.get("role", "")
+                            body = m.get("content", "")
+                            ts = (m.get("created_at", "") or "")[:16].replace("T", " ")
+                            if role == "user":
+                                with st.chat_message("user", avatar="👤"):
+                                    st.caption(ts)
+                                    st.write(body)
+                            elif role in ("agent", "assistant"):
+                                with st.chat_message("assistant", avatar="🤖"):
+                                    st.caption(ts)
+                                    st.write(body)
+                        # Exportar transcrição
+                        trans_rows = []
+                        for m in msgs:
+                            ts = (m.get("created_at", "") or "")[:19].replace("T", " ")
+                            role_label = "Lead" if m.get("role") == "user" else "Eva"
+                            trans_rows.append({
+                                "Data/Hora": ts,
+                                "De": role_label,
+                                "Mensagem": m.get("content", ""),
+                            })
+                        trans_df = pd.DataFrame(trans_rows)
+                        buf_trans = io.BytesIO()
+                        trans_df.to_excel(buf_trans, index=False, engine="openpyxl")
+                        st.download_button(
+                            "⬇️ Exportar Transcrição",
+                            buf_trans.getvalue(),
+                            file_name=f"transcricao_chamada_{conv_id[:12]}_{datetime.now().strftime('%Y%m%d')}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
+                    else:
+                        st.info("Sem transcrição disponível para esta chamada.")
+                except Exception as e:
+                    st.error(f"Erro ao carregar transcrição: {e}")
+            else:
+                st.divider()
+                st.info("Sem conversation_id — transcrição não disponível.")
+        elif canal not in ("whatsapp", "telefone"):
             st.divider()
-            st.info("Transcrição disponível apenas para o canal WhatsApp.")
+            st.info("Transcrição disponível para canais WhatsApp e Telefone.")
 
     st.divider()
 
